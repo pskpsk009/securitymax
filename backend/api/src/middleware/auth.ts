@@ -27,10 +27,10 @@ export const verifyFirebaseAuth: RequestHandler = async (
     req.user = decodedToken;
     next();
   } catch (error) {
-    // Provide server side visibility into repeated auth failures so we can debug invalid tokens quickly.
+    // Log only a short message — never leak token details or stack traces
     // eslint-disable-next-line no-console
-    console.error('Firebase auth verification failed:', error);
-    res.status(401).json({ error: 'Unauthorized', details: error instanceof Error ? error.message : error });
+    console.error('Firebase auth verification failed:', error instanceof Error ? error.message : 'unknown error');
+    res.status(401).json({ error: 'Unauthorized' });
   }
 };
 

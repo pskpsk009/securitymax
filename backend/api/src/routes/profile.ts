@@ -108,6 +108,16 @@ profileRouter.post(
       return;
     }
 
+    // Require at least one uppercase, one lowercase, one digit, one special character
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{}|;:'",.<>?/`~]).{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      res.status(400).json({
+        error:
+          "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character.",
+      });
+      return;
+    }
+
     try {
       await adminAuth.updateUser(uid, { password: newPassword });
       res.json({ message: "Password updated successfully." });

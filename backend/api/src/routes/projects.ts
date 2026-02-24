@@ -24,7 +24,32 @@ import { findUserByEmail, UserRecord } from "../services/userService";
 import { getSupabaseAdminClient } from "../services/supabaseClient";
 import { uploadFile, downloadFile } from "../services/storage";
 
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } });
+const ALLOWED_MIME_TYPES = new Set([
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-powerpoint',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'text/plain',
+  'image/png',
+  'image/jpeg',
+  'image/gif',
+  'application/zip',
+]);
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB max
+  fileFilter: (_req, file, cb) => {
+    if (ALLOWED_MIME_TYPES.has(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error(`File type ${file.mimetype} is not allowed.`));
+    }
+  },
+});
 
 const projectsRouter = Router();
 
@@ -292,15 +317,11 @@ const formatProjectResponse = (record: ProjectWithRelations) => {
     : [];
 
   // Build a lookup of file_link → true for files in the file table
-  const fileTablePaths = new Set(
-    (uploadedFiles ?? []).map((f) => f.file_link),
-  );
+  const fileTablePaths = new Set((uploadedFiles ?? []).map((f) => f.file_link));
 
   // Merge: mark metadata files as downloadable if they have a storagePath in file table
   const files = metadataFiles.map((f: any) => {
-    const hasStorage = !!(
-      f.storagePath && fileTablePaths.has(f.storagePath)
-    );
+    const hasStorage = !!(f.storagePath && fileTablePaths.has(f.storagePath));
     return {
       name: f.name,
       size: f.size,
@@ -687,7 +708,9 @@ projectsRouter.patch(
       }
 
       if (!membership.data) {
-        res.status(403).json({ error: "You are not a member of this project." });
+        res
+          .status(403)
+          .json({ error: "You are not a member of this project." });
         return;
       }
     }
@@ -1266,7 +1289,11 @@ projectsRouter.post(
 
       // Verify the project exists
       const projectResult = await getProjectById(projectId);
-      if (projectResult.error || !projectResult.data || projectResult.data.length === 0) {
+      if (
+        projectResult.error ||
+        !projectResult.data ||
+        projectResult.data.length === 0
+      ) {
         res.status(404).json({ error: "Project not found." });
         return;
       }
@@ -1376,7 +1403,11 @@ projectsRouter.get(
 
       // Fetch project to find the file's storage path
       const projectResult = await getProjectById(projectId);
-      if (projectResult.error || !projectResult.data || projectResult.data.length === 0) {
+      if (
+        projectResult.error ||
+        !projectResult.data ||
+        projectResult.data.length === 0
+      ) {
         res.status(404).json({ error: "Project not found." });
         return;
       }
@@ -1418,7 +1449,12 @@ projectsRouter.get(
       }
 
       if (!storagePath) {
-        res.status(404).json({ error: "File not found. It may not have been uploaded to storage yet." });
+        res
+          .status(404)
+          .json({
+            error:
+              "File not found. It may not have been uploaded to storage yet.",
+          });
         return;
       }
       const blob = await downloadFile(storagePath);
