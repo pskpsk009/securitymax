@@ -96,17 +96,14 @@ export const AccountDetails = ({ user, authToken }: AccountDetailsProps) => {
     setIsResetting(true);
 
     try {
-      const response = await fetch(
-        `${resolveBaseUrl()}/profile/change-password`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${authToken}`,
-          },
-          body: JSON.stringify({ newPassword }),
+      const response = await fetch(`${API_BASE_URL}/profile/change-password`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
         },
-      );
+        body: JSON.stringify({ newPassword }),
+      });
 
       const body = await response.json().catch(() => ({}));
 

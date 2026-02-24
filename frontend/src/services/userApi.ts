@@ -1,10 +1,7 @@
-const resolveBaseUrl = (): string => {
-  const meta = import.meta as unknown as { env?: Record<string, string | undefined> };
-  const configured = meta.env?.VITE_API_BASE_URL ?? "http://localhost:5001";
-  return configured.replace(/\/$/, "");
-};
-
-const API_BASE_URL = resolveBaseUrl();
+// inline API base url at build time to avoid runtime fallback to localhost
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5001"
+).replace(/\/$/, "");
 
 type ApiErrorResponse = { error?: string };
 
@@ -55,14 +52,17 @@ const buildUrl = (path: string): string => {
   return `${API_BASE_URL}${normalizedPath}`;
 };
 
-export const createUser = async (payload: CreateUserRequest, token: string): Promise<ApiUser> => {
+export const createUser = async (
+  payload: CreateUserRequest,
+  token: string,
+): Promise<ApiUser> => {
   const response = await fetch(buildUrl("/users"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
+      Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(payload)
+    body: JSON.stringify(payload),
   });
 
   let body: CreateUserResponse | ApiErrorResponse | undefined;
@@ -73,12 +73,19 @@ export const createUser = async (payload: CreateUserRequest, token: string): Pro
   }
 
   if (!response.ok) {
-    const message = body && "error" in body && typeof body.error === "string" ? body.error : "Failed to create user.";
+    const message =
+      body && "error" in body && typeof body.error === "string"
+        ? body.error
+        : "Failed to create user.";
     throw new ApiError(message, response.status, body);
   }
 
   if (!body || !("user" in body)) {
-    throw new ApiError("User payload missing in response.", response.status, body);
+    throw new ApiError(
+      "User payload missing in response.",
+      response.status,
+      body,
+    );
   }
 
   return (body as CreateUserResponse).user;
@@ -92,8 +99,8 @@ interface ListUsersResponse {
 export const listUsers = async (token: string): Promise<ApiUser[]> => {
   const response = await fetch(buildUrl("/users"), {
     headers: {
-      Authorization: `Bearer ${token}`
-    }
+      Authorization: `Bearer ${token}`,
+    },
   });
 
   let body: ListUsersResponse | ApiErrorResponse | undefined;
@@ -105,7 +112,10 @@ export const listUsers = async (token: string): Promise<ApiUser[]> => {
   }
 
   if (!response.ok) {
-    const message = body && "error" in body && typeof body.error === "string" ? body.error : "Failed to fetch users.";
+    const message =
+      body && "error" in body && typeof body.error === "string"
+        ? body.error
+        : "Failed to fetch users.";
     throw new ApiError(message, response.status, body);
   }
 
@@ -124,7 +134,11 @@ export const listUsers = async (token: string): Promise<ApiUser[]> => {
   return [];
 };
 
-export const updateUser = async (id: number, payload: UpdateUserRequest, token: string): Promise<ApiUser> => {
+export const updateUser = async (
+  id: number,
+  payload: UpdateUserRequest,
+  token: string,
+): Promise<ApiUser> => {
   const sanitizedPayload: Record<string, string> = {};
 
   if (typeof payload.name === "string" && payload.name.trim().length > 0) {
@@ -139,7 +153,10 @@ export const updateUser = async (id: number, payload: UpdateUserRequest, token: 
     sanitizedPayload.role = payload.role.trim();
   }
 
-  if (typeof payload.password === "string" && payload.password.trim().length > 0) {
+  if (
+    typeof payload.password === "string" &&
+    payload.password.trim().length > 0
+  ) {
     sanitizedPayload.password = payload.password.trim();
   }
 
@@ -151,9 +168,9 @@ export const updateUser = async (id: number, payload: UpdateUserRequest, token: 
     method: "PATCH",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
+      Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify(sanitizedPayload)
+    body: JSON.stringify(sanitizedPayload),
   });
 
   let body: UpdateUserResponse | ApiErrorResponse | undefined;
@@ -165,12 +182,19 @@ export const updateUser = async (id: number, payload: UpdateUserRequest, token: 
   }
 
   if (!response.ok) {
-    const message = body && "error" in body && typeof body.error === "string" ? body.error : "Failed to update user.";
+    const message =
+      body && "error" in body && typeof body.error === "string"
+        ? body.error
+        : "Failed to update user.";
     throw new ApiError(message, response.status, body ?? payload);
   }
 
   if (!body || !("user" in body) || !body.user) {
-    throw new ApiError("User payload missing in response.", response.status, body);
+    throw new ApiError(
+      "User payload missing in response.",
+      response.status,
+      body,
+    );
   }
 
   return body.user;
@@ -180,8 +204,8 @@ export const deleteUser = async (id: number, token: string): Promise<void> => {
   const response = await fetch(buildUrl(`/users/${id}`), {
     method: "DELETE",
     headers: {
-      Authorization: `Bearer ${token}`
-    }
+      Authorization: `Bearer ${token}`,
+    },
   });
 
   if (!response.ok) {
@@ -193,7 +217,10 @@ export const deleteUser = async (id: number, token: string): Promise<void> => {
       body = undefined;
     }
 
-    const message = body && "error" in body && typeof body.error === "string" ? body.error : "Failed to delete user.";
+    const message =
+      body && "error" in body && typeof body.error === "string"
+        ? body.error
+        : "Failed to delete user.";
     throw new ApiError(message, response.status, body);
   }
 };

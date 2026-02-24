@@ -1,12 +1,10 @@
-const resolveBaseUrl = (): string => {
-  const meta = import.meta as unknown as {
-    env?: Record<string, string | undefined>;
-  };
-  const configured = meta.env?.VITE_API_BASE_URL ?? "http://localhost:5001";
-  return configured.replace(/\/$/, "");
-};
+// build-time constant for API URL; avoids runtime lookup so the correct value
+// from .env.production (or Render env) is inlined. The previous helper could not
+// be replaced by Vite and therefore resulted in "localhost:5001" in production.
 
-const API_BASE_URL = resolveBaseUrl();
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5001"
+).replace(/\/$/, "");
 
 const buildUrl = (path: string): string => {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;

@@ -1,10 +1,7 @@
-const resolveBaseUrl = (): string => {
-  const meta = import.meta as unknown as { env?: Record<string, string | undefined> };
-  const configured = meta.env?.VITE_API_BASE_URL ?? "http://localhost:5001";
-  return configured.replace(/\/$/, "");
-};
-
-const API_BASE_URL = resolveBaseUrl();
+// inline build-time API URL constant
+const API_BASE_URL = (
+  import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5001"
+).replace(/\/$/, "");
 
 const buildUrl = (path: string): string => {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
@@ -90,7 +87,11 @@ const handleJsonResponse = async <T>(response: Response): Promise<T> => {
 
   if (!response.ok) {
     const message =
-      body && typeof body === "object" && body !== null && "error" in body && typeof (body as { error?: string }).error === "string"
+      body &&
+      typeof body === "object" &&
+      body !== null &&
+      "error" in body &&
+      typeof (body as { error?: string }).error === "string"
         ? (body as { error: string }).error
         : "Request failed";
     throw new Error(message);
@@ -110,7 +111,10 @@ export const fetchRubrics = async (token: string): Promise<RubricDto[]> => {
   return body?.rubrics ?? [];
 };
 
-export const fetchRubricById = async (id: number, token: string): Promise<RubricDto> => {
+export const fetchRubricById = async (
+  id: number,
+  token: string,
+): Promise<RubricDto> => {
   const response = await fetch(buildUrl(`/rubrics/${id}`), {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -120,7 +124,10 @@ export const fetchRubricById = async (id: number, token: string): Promise<Rubric
   return body.rubric;
 };
 
-export const createRubric = async (payload: CreateRubricPayload, token: string): Promise<RubricDto> => {
+export const createRubric = async (
+  payload: CreateRubricPayload,
+  token: string,
+): Promise<RubricDto> => {
   const response = await fetch(buildUrl("/rubrics"), {
     method: "POST",
     headers: {
@@ -135,7 +142,11 @@ export const createRubric = async (payload: CreateRubricPayload, token: string):
   return body.rubric;
 };
 
-export const updateRubric = async (id: number, payload: UpdateRubricPayload, token: string): Promise<RubricDto> => {
+export const updateRubric = async (
+  id: number,
+  payload: UpdateRubricPayload,
+  token: string,
+): Promise<RubricDto> => {
   const response = await fetch(buildUrl(`/rubrics/${id}`), {
     method: "PUT",
     headers: {
@@ -150,7 +161,10 @@ export const updateRubric = async (id: number, payload: UpdateRubricPayload, tok
   return body.rubric;
 };
 
-export const toggleRubricStatus = async (id: number, token: string): Promise<RubricDto> => {
+export const toggleRubricStatus = async (
+  id: number,
+  token: string,
+): Promise<RubricDto> => {
   const response = await fetch(buildUrl(`/rubrics/${id}/toggle`), {
     method: "PATCH",
     headers: { Authorization: `Bearer ${token}` },
@@ -161,7 +175,10 @@ export const toggleRubricStatus = async (id: number, token: string): Promise<Rub
   return body.rubric;
 };
 
-export const deleteRubric = async (id: number, token: string): Promise<void> => {
+export const deleteRubric = async (
+  id: number,
+  token: string,
+): Promise<void> => {
   const response = await fetch(buildUrl(`/rubrics/${id}`), {
     method: "DELETE",
     headers: { Authorization: `Bearer ${token}` },
