@@ -1,5 +1,7 @@
 import { Router, Response } from "express";
 import { AuthedRequest, verifyFirebaseAuth } from "../middleware/auth";
+import { validate } from "../middleware/validate";
+import { createCourseSchema } from "../middleware/schemas";
 import { getSupabaseAdminClient } from "../services/supabaseClient";
 import { findUserByEmail } from "../services/userService";
 import {
@@ -48,12 +50,12 @@ const formatProjectForCourse = (record: ProjectWithRelations) => {
         (member) =>
           typeof member === "object" &&
           member !== null &&
-          typeof member.email === "string"
+          typeof member.email === "string",
       )
     : [];
   const files = Array.isArray(parsedMetadata.files)
     ? parsedMetadata.files.filter(
-        (file) => typeof file === "object" && file !== null
+        (file) => typeof file === "object" && file !== null,
       )
     : [];
   const metadataGrade =
@@ -108,6 +110,7 @@ const formatProjectForCourse = (record: ProjectWithRelations) => {
 coursesRouter.post(
   "/",
   verifyFirebaseAuth,
+  validate(createCourseSchema),
   async (req: AuthedRequest, res: Response) => {
     const role = req.user?.role;
 
@@ -126,19 +129,6 @@ coursesRouter.post(
       instructor,
       advisorEmail,
     } = req.body;
-
-    if (
-      !courseCode ||
-      !title ||
-      !semester ||
-      !year ||
-      !credits ||
-      !instructor ||
-      !advisorEmail
-    ) {
-      res.status(400).json({ error: "Missing required fields." });
-      return;
-    }
 
     const supabase = getSupabaseAdminClient();
 
@@ -193,7 +183,7 @@ coursesRouter.post(
         advisorId: course.advisor_id,
       },
     });
-  }
+  },
 );
 
 // Get all courses for coordinator, or assigned courses for advisor
@@ -253,7 +243,7 @@ coursesRouter.get(
       })) || [];
 
     res.json({ courses: formattedCourses });
-  }
+  },
 );
 
 // Delete a course (coordinator only)
@@ -282,7 +272,7 @@ coursesRouter.delete(
     }
 
     res.json({ message: "Course deleted successfully." });
-  }
+  },
 );
 
 // Get projects for a specific course
@@ -300,11 +290,11 @@ coursesRouter.get(
     }
 
     const formattedProjects = (projectsResult.data || []).map(
-      formatProjectForCourse
+      formatProjectForCourse,
     );
 
     res.json({ projects: formattedProjects });
-  }
+  },
 );
 
 export default coursesRouter;
@@ -331,7 +321,7 @@ coursesRouter.get(
     }
 
     res.json({ roster: result.data ?? [] });
-  }
+  },
 );
 
 // Upsert roster entries for a course
@@ -341,11 +331,9 @@ coursesRouter.post(
   async (req: AuthedRequest, res: Response) => {
     const role = req.user?.role;
     if (role !== "coordinator" && role !== "advisor") {
-      res
-        .status(403)
-        .json({
-          error: "Only coordinators or advisors can modify course rosters.",
-        });
+      res.status(403).json({
+        error: "Only coordinators or advisors can modify course rosters.",
+      });
       return;
     }
 
@@ -383,7 +371,7 @@ coursesRouter.post(
     }
 
     res.status(201).json({ roster: result.data ?? [] });
-  }
+  },
 );
 
 // Delete a single roster entry for a course
@@ -393,11 +381,9 @@ coursesRouter.delete(
   async (req: AuthedRequest, res: Response) => {
     const role = req.user?.role;
     if (role !== "coordinator" && role !== "advisor") {
-      res
-        .status(403)
-        .json({
-          error: "Only coordinators or advisors can modify course rosters.",
-        });
+      res.status(403).json({
+        error: "Only coordinators or advisors can modify course rosters.",
+      });
       return;
     }
 
@@ -415,5 +401,5 @@ coursesRouter.delete(
     }
 
     res.json({ success: true });
-  }
+  },
 );
