@@ -15,9 +15,10 @@ export const validate =
       if (err instanceof ZodError) {
         res.status(400).json({
           error: "Validation failed.",
-          details: err.errors.map((e) => ({
-            field: e.path.join("."),
-            message: e.message,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          details: err.issues.map((e: any) => ({
+            field: (e.path ?? []).join("."),
+            message: String(e.message ?? ""),
           })),
         });
         return;
