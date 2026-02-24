@@ -1,4 +1,4 @@
-import { Router, Response } from "express";
+import { Router, Response, NextFunction } from "express";
 import multer from "multer";
 import { AuthedRequest, verifyFirebaseAuth } from "../middleware/auth";
 import {
@@ -25,23 +25,23 @@ import { getSupabaseAdminClient } from "../services/supabaseClient";
 import { uploadFile, downloadFile } from "../services/storage";
 
 const ALLOWED_MIME_TYPES = new Set([
-  'application/pdf',
-  'application/msword',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/vnd.ms-excel',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'application/vnd.ms-powerpoint',
-  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  'text/plain',
-  'image/png',
-  'image/jpeg',
-  'image/gif',
-  'application/zip',
+  "application/pdf",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/vnd.ms-excel",
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  "application/vnd.ms-powerpoint",
+  "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+  "text/plain",
+  "image/png",
+  "image/jpeg",
+  "image/gif",
+  "application/zip",
 ]);
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB max
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB max
   fileFilter: (_req, file, cb) => {
     if (ALLOWED_MIME_TYPES.has(file.mimetype)) {
       cb(null, true);
@@ -1270,7 +1270,25 @@ projectsRouter.get(
 projectsRouter.post(
   "/:id/files",
   verifyFirebaseAuth,
-  upload.array("files", 10),
+  (req: AuthedRequest, res: Response, next: NextFunction) => {
+    upload.array("files", 10)(req, res, (err: any) => {
+      if (err) {
+        if (err.code === "LIMIT_FILE_SIZE") {
+          res
+            .status(413)
+            .json({ error: "File too large. Maximum size is 20 MB." });
+          return;
+        }
+        if (err.message?.includes("not allowed")) {
+          res.status(415).json({ error: err.message });
+          return;
+        }
+        res.status(400).json({ error: "File upload error." });
+        return;
+      }
+      next();
+    });
+  },
   async (req: AuthedRequest, res: Response) => {
     try {
       const projectId = parseInt(req.params.id, 10);
@@ -1449,12 +1467,10 @@ projectsRouter.get(
       }
 
       if (!storagePath) {
-        res
-          .status(404)
-          .json({
-            error:
-              "File not found. It may not have been uploaded to storage yet.",
-          });
+        res.status(404).json({
+          error:
+            "File not found. It may not have been uploaded to storage yet.",
+        });
         return;
       }
       const blob = await downloadFile(storagePath);
