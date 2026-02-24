@@ -11,8 +11,14 @@
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "Node16",
     "resolveJsonModule": true,
-    "types": ["node", "jest"]
+    "types": ["node"]
   },
   "include": ["src"],
-  "exclude": ["node_modules", "lib", "coverage"]
+  "exclude": [
+    "node_modules",
+    "lib",
+    "coverage",
+    "**/__tests__/**",
+    "**/*.test.ts"
+  ]
 }
