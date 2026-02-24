@@ -1,6 +1,6 @@
 import { Router, Response } from "express";
 import { AuthedRequest, verifyFirebaseAuth } from "../middleware/auth";
-import { getSupabaseClient } from "../services/supabaseClient";
+import { getSupabaseAdminClient } from "../services/supabaseClient";
 import { findUserByEmail } from "../services/userService";
 
 const commentsRouter = Router();
@@ -23,7 +23,7 @@ commentsRouter.get(
   verifyFirebaseAuth,
   async (req: AuthedRequest, res: Response) => {
     try {
-      const supabase = getSupabaseClient();
+      const supabase = getSupabaseAdminClient();
 
       // Get all comments
       const { data: comments, error } = await supabase
@@ -111,7 +111,7 @@ commentsRouter.get(
         return;
       }
 
-      const supabase = getSupabaseClient();
+      const supabase = getSupabaseAdminClient();
 
       // Get comments with user information
       const { data: comments, error } = await supabase
@@ -210,7 +210,7 @@ commentsRouter.post(
       }
 
       const user = userResponse.data;
-      const supabase = getSupabaseClient();
+      const supabase = getSupabaseAdminClient();
 
       // Verify project exists
       const { data: project, error: projectError } = await supabase
@@ -311,7 +311,7 @@ commentsRouter.delete(
       }
 
       const user = userResponse.data;
-      const supabase = getSupabaseClient();
+      const supabase = getSupabaseAdminClient();
 
       // Get comment to verify ownership
       const { data: comment, error: fetchError } = await supabase

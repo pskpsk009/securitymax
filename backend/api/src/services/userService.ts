@@ -1,5 +1,5 @@
 import { PostgrestResponse, PostgrestSingleResponse } from '@supabase/supabase-js';
-import { getSupabaseClient } from './supabaseClient';
+import { getSupabaseAdminClient } from './supabaseClient';
 
 export type UserRole = 'student' | 'advisor' | 'coordinator';
 
@@ -26,7 +26,7 @@ export interface UpdateUserInput {
 }
 
 export const createUser = async (input: CreateUserInput): Promise<PostgrestSingleResponse<UserRecord>> => {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
 
   return supabase
     .from('user')
@@ -41,19 +41,19 @@ export const createUser = async (input: CreateUserInput): Promise<PostgrestSingl
 };
 
 export const findUserByEmail = async (email: string): Promise<PostgrestSingleResponse<UserRecord | null>> => {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
 
   return supabase.from('user').select('*').eq('email', email).maybeSingle();
 };
 
 export const findUserById = async (id: number): Promise<PostgrestSingleResponse<UserRecord | null>> => {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
 
   return supabase.from('user').select('*').eq('id', id).maybeSingle();
 };
 
 export const listUsers = async (): Promise<PostgrestResponse<UserRecord>> => {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
 
   return supabase.from('user').select('*').order('id', { ascending: true });
 };
@@ -62,7 +62,7 @@ export const updateUserRecord = async (
   id: number,
   updates: UpdateUserInput
 ): Promise<PostgrestSingleResponse<UserRecord>> => {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
 
   const payload: Record<string, unknown> = {};
 
@@ -86,7 +86,7 @@ export const updateUserRecord = async (
 };
 
 export const deleteUserById = async (id: number): Promise<PostgrestSingleResponse<UserRecord>> => {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
 
   return supabase.from('user').delete().eq('id', id).select().single();
 };

@@ -21,7 +21,7 @@ import {
   updateProjectRecord,
 } from "../services/projectService";
 import { findUserByEmail, UserRecord } from "../services/userService";
-import { getSupabaseClient } from "../services/supabaseClient";
+import { getSupabaseAdminClient } from "../services/supabaseClient";
 import { uploadFile, downloadFile } from "../services/storage";
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 * 1024 * 1024 } });
@@ -538,7 +538,7 @@ projectsRouter.post(
     const normalizedCourseCode = normalizeString(courseCode);
 
     if (normalizedCourseCode) {
-      const supabase = getSupabaseClient();
+      const supabase = getSupabaseAdminClient();
       const { data: course } = await supabase
         .from("course")
         .select("id")
@@ -582,7 +582,7 @@ projectsRouter.post(
     );
 
     if (studentLinkResponse.error) {
-      const supabase = getSupabaseClient();
+      const supabase = getSupabaseAdminClient();
       await supabase.from("project").delete().eq("id", projectId);
       res.status(500).json({ error: studentLinkResponse.error.message });
       return;
@@ -591,7 +591,7 @@ projectsRouter.post(
     const linkResponse = await insertProjectLinks(projectId, externalLinks);
 
     if (linkResponse.error) {
-      const supabase = getSupabaseClient();
+      const supabase = getSupabaseAdminClient();
       try {
         await supabase.from("team_member").delete().eq("project_id", projectId);
       } catch (_error) {
@@ -670,7 +670,7 @@ projectsRouter.patch(
       return;
     }
 
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseAdminClient();
 
     // Coordinators can edit any project; students must be a team member
     if (role === "student") {
@@ -1307,7 +1307,7 @@ projectsRouter.post(
       const updatedFiles = [...keptFiles, ...uploadedFileSummaries];
       const updatedMetadata = { ...existingMetadata, files: updatedFiles };
 
-      const supabase = getSupabaseClient();
+      const supabase = getSupabaseAdminClient();
       await supabase
         .from("project")
         .update({ comment_student: JSON.stringify(updatedMetadata) })
@@ -1397,7 +1397,7 @@ projectsRouter.get(
 
       // 2. Fall back to the file table
       if (!storagePath) {
-        const supabase = getSupabaseClient();
+        const supabase = getSupabaseAdminClient();
         const { data: fileRows } = await supabase
           .from("file")
           .select("file_link")

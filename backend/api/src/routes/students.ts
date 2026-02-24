@@ -5,7 +5,7 @@ import {
   requireCoordinator,
   verifyFirebaseAuth,
 } from "../middleware/auth";
-import { getSupabaseClient } from "../services/supabaseClient";
+import { getSupabaseAdminClient } from "../services/supabaseClient";
 import { sendBulkSignInLinks } from "../services/emailService";
 import { adminAuth } from "../config/firebase";
 import { createUser, findUserByEmail } from "../services/userService";
@@ -121,7 +121,7 @@ studentsRouter.post(
         return;
       }
 
-      const supabase = getSupabaseClient();
+      const supabase = getSupabaseAdminClient();
 
       // Insert students into the tracking table
       const { data, error } = await supabase
@@ -262,7 +262,7 @@ studentsRouter.get(
   verifyFirebaseAuth,
   async (_req: AuthedRequest, res: Response) => {
     try {
-      const supabase = getSupabaseClient();
+      const supabase = getSupabaseAdminClient();
       const { data, error } = await supabase
         .from("students")
         .select("*")
@@ -310,7 +310,7 @@ studentsRouter.post(
   async (req: AuthedRequest, res: Response) => {
     try {
       const { id } = req.params;
-      const supabase = getSupabaseClient();
+      const supabase = getSupabaseAdminClient();
 
       const { data: student, error } = await supabase
         .from("students")

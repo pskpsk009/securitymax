@@ -12,7 +12,7 @@ import {
   UserRole
 } from '../services/userService';
 import { adminAuth } from '../config/firebase';
-import { getSupabaseClient } from '../services/supabaseClient';
+import { getSupabaseAdminClient } from '../services/supabaseClient';
 
 const usersRouter = Router();
 
@@ -370,7 +370,7 @@ usersRouter.delete('/:id', verifyFirebaseAuth, requireCoordinator, async (req: A
     return;
   }
 
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
 
   if (existingUser.role === 'student') {
     const teamCleanup = await supabase.from('team_member').delete().eq('student_id', numericId);

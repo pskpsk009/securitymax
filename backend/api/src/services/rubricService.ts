@@ -1,4 +1,4 @@
-import { getSupabaseClient } from "./supabaseClient";
+import { getSupabaseAdminClient } from "./supabaseClient";
 
 // ── Types ────────────────────────────────────────────────────────────────
 
@@ -82,7 +82,7 @@ const fail = <T>(msg: string, code?: string): ServiceResult<T> => ({ data: null,
 // ── CRUD ─────────────────────────────────────────────────────────────────
 
 export async function listRubrics(): Promise<ServiceResult<RubricWithCriteria[]>> {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
 
   const { data: rubrics, error } = await supabase
     .from("rubric")
@@ -123,7 +123,7 @@ export async function listRubrics(): Promise<ServiceResult<RubricWithCriteria[]>
 }
 
 export async function getRubricById(id: number): Promise<ServiceResult<RubricWithCriteria>> {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
 
   const { data: rubric, error } = await supabase
     .from("rubric")
@@ -159,7 +159,7 @@ export async function getRubricById(id: number): Promise<ServiceResult<RubricWit
 }
 
 export async function createRubric(input: CreateRubricInput): Promise<ServiceResult<RubricWithCriteria>> {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
 
   // Insert rubric
   const { data: rubric, error } = await supabase
@@ -184,7 +184,7 @@ export async function createRubric(input: CreateRubricInput): Promise<ServiceRes
 }
 
 export async function updateRubric(id: number, input: UpdateRubricInput): Promise<ServiceResult<RubricWithCriteria>> {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
 
   const updatePayload: Record<string, unknown> = { updated_at: new Date().toISOString() };
   if (input.name !== undefined) updatePayload.name = input.name;
@@ -223,7 +223,7 @@ export async function updateRubric(id: number, input: UpdateRubricInput): Promis
 }
 
 export async function deleteRubric(id: number): Promise<ServiceResult<{ deleted: true }>> {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
 
   const { error } = await supabase
     .from("rubric")
@@ -236,7 +236,7 @@ export async function deleteRubric(id: number): Promise<ServiceResult<{ deleted:
 }
 
 export async function toggleRubricStatus(id: number): Promise<ServiceResult<RubricWithCriteria>> {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
 
   // Get current status
   const { data: current, error: getErr } = await supabase
@@ -253,7 +253,7 @@ export async function toggleRubricStatus(id: number): Promise<ServiceResult<Rubr
 // ── Private helper ───────────────────────────────────────────────────────
 
 async function insertCriteria(
-  supabase: ReturnType<typeof getSupabaseClient>,
+  supabase: ReturnType<typeof getSupabaseAdminClient>,
   rubricId: number,
   criteria: CriterionInput[]
 ): Promise<(RubricCriterionRow & { levels: RubricLevelRow[] })[] | string> {

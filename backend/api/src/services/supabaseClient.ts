@@ -1,20 +1,38 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { env } from '../config/env';
 
-type ServiceSupabaseClient = SupabaseClient;
+// --- Admin client (service role key) — bypasses RLS ---
+// Use ONLY for write operations, cross-user queries, storage, and admin tasks.
+let cachedAdminClient: SupabaseClient | null = null;
 
-let cachedClient: ServiceSupabaseClient | null = null;
-
-export const getSupabaseClient = (): ServiceSupabaseClient => {
-  if (cachedClient) {
-    return cachedClient;
+export const getSupabaseAdminClient = (): SupabaseClient => {
+  if (cachedAdminClient) {
+    return cachedAdminClient;
   }
 
-  cachedClient = createClient(env.supabaseUrl, env.supabaseServiceRoleKey, {
+  cachedAdminClient = createClient(env.supabaseUrl, env.supabaseServiceRoleKey, {
     auth: {
       persistSession: false
     }
   });
 
-  return cachedClient;
+  return cachedAdminClient;
+};
+
+// --- Regular client (anon key) — respects RLS ---
+// Use for read-only operations that should be scoped by RLS policies.
+let cachedAnonClient: SupabaseClient | null = null;
+
+export const getSupabaseClient = (): SupabaseClient => {
+  if (cachedAnonClient) {
+    return cachedAnonClient;
+  }
+
+  cachedAnonClient = createClient(env.supabaseUrl, env.supabaseAnonKey, {
+    auth: {
+      persistSession: false
+    }
+  });
+
+  return cachedAnonClient;
 };

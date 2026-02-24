@@ -1,6 +1,6 @@
 import { Router, Response } from "express";
 import { AuthedRequest, verifyFirebaseAuth } from "../middleware/auth";
-import { getSupabaseClient } from "../services/supabaseClient";
+import { getSupabaseAdminClient } from "../services/supabaseClient";
 import { findUserByEmail } from "../services/userService";
 import {
   listProjectsByCourse,
@@ -140,7 +140,7 @@ coursesRouter.post(
       return;
     }
 
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseAdminClient();
 
     // Find advisor by email
     const advisorResponse = await findUserByEmail(advisorEmail);
@@ -219,7 +219,7 @@ coursesRouter.get(
 
     const user = userResponse.data;
     const role = req.user?.role ?? user.role;
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseAdminClient();
 
     let coursesQuery = supabase.from("course").select(`
     *,
@@ -269,7 +269,7 @@ coursesRouter.delete(
     }
 
     const { courseId } = req.params;
-    const supabase = getSupabaseClient();
+    const supabase = getSupabaseAdminClient();
 
     const { error } = await supabase
       .from("course")

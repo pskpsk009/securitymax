@@ -1,7 +1,7 @@
 import { env } from '../config/env';
-import { getSupabaseClient } from './supabaseClient';
+import { getSupabaseAdminClient } from './supabaseClient';
 
-export const getStorageClient = () => getSupabaseClient().storage;
+export const getStorageClient = () => getSupabaseAdminClient().storage;
 
 export const getBucket = (bucketName?: string) => {
 	const resolvedBucket = bucketName ?? env.supabaseStorageBucket;
