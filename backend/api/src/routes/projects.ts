@@ -1298,7 +1298,16 @@ projectsRouter.post(
         return;
       }
 
-      const uploadedFiles = req.files as Express.Multer.File[] | undefined;
+      const uploadedFiles = (req as any).files as
+        | Array<{
+            fieldname: string;
+            originalname: string;
+            encoding: string;
+            mimetype: string;
+            size: number;
+            buffer: Buffer;
+          }>
+        | undefined;
 
       if (!uploadedFiles || uploadedFiles.length === 0) {
         res.status(400).json({ error: "No files provided." });
